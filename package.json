@@ -1,0 +1,12 @@
+{
+  "name": "bookshelf-browser",
+  "version": "1.0.0",
+  "description": "Display a random image from the images folder on each page load.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
