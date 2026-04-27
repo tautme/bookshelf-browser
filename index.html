@@ -2,33 +2,68 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <title>Random Image</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@5.4.4/dist/photoswipe.css">
   <style>
-    html, body {
-      margin: 0;
-      height: 100%;
-      background: #000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    img {
-      max-width: 100%;
-      max-height: 100%;
-      object-fit: contain;
-    }
+    html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+    body { display: flex; align-items: center; justify-content: center; font-family: system-ui, sans-serif; }
+    #pic { max-width: 100%; max-height: 100%; object-fit: contain; cursor: zoom-in; opacity: 0; transition: opacity .3s ease; }
+    #pic.loaded { opacity: 1; }
+    #msg { color: #888; font-size: 14px; }
+    #hint { position: fixed; bottom: 16px; right: 16px; color: #555; font-size: 12px; pointer-events: none; user-select: none; }
   </style>
 </head>
 <body>
   <img id="pic" alt="">
-  <script>
-    fetch('/random-image')
-      .then(r => r.json())
-      .then(data => {
-        if (data.filename) {
-          document.getElementById('pic').src = '/images/' + data.filename;
-        }
-      });
+  <div id="msg">Loading…</div>
+  <div id="hint">click image to zoom · F5 for new</div>
+
+  <script type="module">
+    import PhotoSwipeLightbox from 'https://cdn.jsdelivr.net/npm/photoswipe@5.4.4/dist/photoswipe-lightbox.esm.js';
+
+    const img = document.getElementById('pic');
+    const msg = document.getElementById('msg');
+
+    function showError(text) {
+      msg.textContent = text;
+      msg.style.color = '#c66';
+    }
+
+    try {
+      const res = await fetch('/random-image');
+      const data = await res.json();
+      if (!res.ok || !data.url) {
+        showError(data.error || `Error ${res.status}`);
+      } else {
+        img.addEventListener('load', () => {
+          msg.remove();
+          img.classList.add('loaded');
+
+          const lightbox = new PhotoSwipeLightbox({
+            dataSource: [{
+              src: data.url,
+              width: img.naturalWidth,
+              height: img.naturalHeight,
+              alt: data.key,
+            }],
+            pswpModule: () => import('https://cdn.jsdelivr.net/npm/photoswipe@5.4.4/dist/photoswipe.esm.js'),
+            bgOpacity: 1,
+            showHideAnimationType: 'fade',
+            wheelToZoom: true,
+            initialZoomLevel: 'fit',
+            secondaryZoomLevel: 'fill',
+            maxZoomLevel: 4,
+          });
+          lightbox.init();
+          img.addEventListener('click', () => lightbox.loadAndOpen(0));
+        });
+        img.addEventListener('error', () => showError('Image failed to load'));
+        img.src = data.url;
+      }
+    } catch (err) {
+      showError('Network error: ' + err.message);
+    }
   </script>
 </body>
 </html>

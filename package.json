@@ -1,12 +1,14 @@
 {
   "name": "bookshelf-browser",
   "version": "1.0.0",
-  "description": "Display a random image from the images folder on each page load.",
+  "description": "Display a random image from an S3 bucket on each page load, with PhotoSwipe zoom.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.658.0",
+    "@aws-sdk/s3-request-presigner": "^3.658.0",
     "express": "^4.19.2"
   }
 }
